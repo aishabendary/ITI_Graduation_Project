@@ -1,0 +1,10 @@
+# ubuntu.yml
+---
+- name: Include Ubuntu specific tasks
+  include_tasks: "{{ item }}"
+  loop:
+    - ubuntu/docker.yml
+    - ubuntu/kubectl.yml
+    - ubuntu/minikube.yml
+    - ubuntu/terraform.yml
+

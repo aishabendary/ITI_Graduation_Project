@@ -1,0 +1,6 @@
+- name: Install Minikube and it's dependencies
+  hosts: local
+  connection: local
+  become: yes
+  roles:
+    - minikube

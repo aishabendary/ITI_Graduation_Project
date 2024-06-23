@@ -1,0 +1,3 @@
+---
+# vars file for minikube
+terraform_version: 1.0.8

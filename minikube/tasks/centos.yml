@@ -1,0 +1,10 @@
+# centos.yml
+---
+- name: Include CentOS specific tasks
+  include_tasks: "{{ item }}"
+  loop:
+    - centos/docker.yml
+    - centos/kubectl.yml
+    - centos/minikube.yml
+    - centos/terraform.yml
+
