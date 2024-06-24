@@ -1,6 +1,6 @@
 [aws_ec2]
 ubuntu ansible_host=ip_address ansible_user=ubuntu
-redhat ansible_host=3ip_address ansible_user=ec2-user
+redhat ansible_host=ip_address ansible_user=ec2-user
 
 [local]
 localhost
