@@ -1,0 +1,28 @@
+# terraform.yml
+---
+- name: Install unzip and zip packages
+  yum:
+    name:
+      - unzip
+      - zip
+    state: present
+
+- name: Create directory for Terraform installation
+  file:
+    path: /usr/local/bin
+    state: directory
+    mode: '0755'
+
+- name: Download Terraform
+  get_url:
+    url: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+    dest: /tmp/terraform_{{ terraform_version }}.zip
+
+- name: Extract Terraform binary
+  unarchive:
+    src: /tmp/terraform_{{ terraform_version }}.zip
+    dest: /usr/local/bin
+    remote_src: yes
+    creates: /usr/local/bin/terraform
+    mode: '0755'
+

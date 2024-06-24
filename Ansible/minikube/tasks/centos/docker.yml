@@ -1,0 +1,56 @@
+# docker.yml
+---
+- name: Get the ansible user variable
+  command: whoami
+  register: user
+  become: no
+
+- name: Ensure yum cache is up to date
+  yum:
+    update_cache: yes
+
+- name: Install required system packages
+  yum:
+    name:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+      - python3
+      - python3-pip
+      - python3-setuptools
+    state: latest
+
+- name: Add Docker repo
+  get_url:
+    url: "https://download.docker.com/linux/centos/docker-ce.repo"
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install Docker and related packages
+  yum:
+    name: "{{ docker_package }}"
+    state: present
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-compose-plugin
+  loop_control:
+    loop_var: docker_package
+
+- name: Add Docker group
+  group:
+    name: docker
+    state: present
+
+- name: Add user to Docker group
+  user:
+    name: "{{ user.stdout }}"
+    groups: docker
+    append: yes
+
+- name: Ensure Docker service is started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
