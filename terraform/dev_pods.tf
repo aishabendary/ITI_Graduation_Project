@@ -1,7 +1,8 @@
+
 resource "kubernetes_pod" "nodejs-app" {
   metadata {
     name      = "nodejs-app"
-    namespace = "dev"
+    namespace = kubernetes_namespace.dev.metadata[0].name
   }
   spec {
     container {
@@ -33,7 +34,7 @@ resource "kubernetes_pod" "nodejs-app" {
 resource "kubernetes_pod" "mysql" {
   metadata {
     name      = "mysql"
-    namespace = "dev"
+    namespace = kubernetes_namespace.dev.metadata[0].name
   }
   spec {
     container {
@@ -48,7 +49,7 @@ resource "kubernetes_pod" "mysql" {
         value = "mydatabase"
       }
       port {
-        container_port = 5500
+        container_port = 3306
       }
     }
   }
