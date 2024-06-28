@@ -10,28 +10,11 @@ resource "kubernetes_role" "jenkins_role" {
 
   rule {
     api_groups = [""]
-    resources  = ["pods"]
-    verbs      = ["create", "delete", "get", "list", "patch", "update", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["pods/exec"]
-    verbs      = ["create", "delete", "get", "list", "patch", "update", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["pods/log"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["secrets"]
-    verbs      = ["get"]
+    resources  = ["pods", "pods/log", "services", "deployments", "configmaps", "secrets"]
+    verbs      = ["get", "list", "create", "update", "delete"]
   }
 }
+
 
 # Create the RoleBinding
 resource "kubernetes_role_binding" "jenkins_role_binding" {
