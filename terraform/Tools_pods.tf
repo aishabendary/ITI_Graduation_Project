@@ -1,4 +1,3 @@
-
 resource "kubernetes_pod" "jenkins" {
   metadata {
     name      = "jenkins"
@@ -11,6 +10,9 @@ resource "kubernetes_pod" "jenkins" {
     container {
       image = "jenkins/jenkins:lts"
       name  = "jenkins"
+      port {
+        container_port = 8080
+      }
       port {
         container_port = 50000
       }
@@ -38,14 +40,20 @@ resource "kubernetes_service" "jenkins" {
       app = "jenkins"
     }
     port {
+      name        = "http"
+      protocol    = "TCP"
+      port        = 8080
+      target_port = 8080
+    }
+    port {
+      name        = "agent"
       protocol    = "TCP"
       port        = 50000
-      target_port = 8080
+      target_port = 50000
     }
     type = "LoadBalancer"
   }
 }
-
 
 resource "kubernetes_pod" "nexus" {
   metadata {
@@ -62,6 +70,9 @@ resource "kubernetes_pod" "nexus" {
       port {
         container_port = 8081
       }
+      port {
+        container_port = 8085
+      }
       volume_mount {
         mount_path = "/nexus-data"
         name       = "nexus-storage"
@@ -75,6 +86,7 @@ resource "kubernetes_pod" "nexus" {
     }
   }
 }
+
 resource "kubernetes_service" "nexus" {
   metadata {
     name      = "nexus-service"
@@ -85,10 +97,18 @@ resource "kubernetes_service" "nexus" {
       app = "nexus"
     }
     port {
+      name        = "http"
       protocol    = "TCP"
       port        = 8081
+      target_port = 8081
+    }
+    port {
+      name        = "custom"
+      protocol    = "TCP"
+      port        = 8085
       target_port = 8085
     }
     type = "LoadBalancer"
   }
 }
+
