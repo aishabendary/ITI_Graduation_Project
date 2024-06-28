@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Define Nexus credentials ID (replace with your actual credentials ID in Jenkins)
+        NEXUS_CREDENTIALS_ID = 'nexus'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'k8s_task', url: 'https://github.com/mahmoud254/jenkins_nodejs_example.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -f dockerfile -t test .'
+            }
+        }
+
+        stage('Start Docker Registry') {
+            steps {
+                script {
+                    // Ensure registry is not already running
+                    sh 'docker rm -f registry || true'
+                    sh 'docker run -d -p 8085:5000 --restart=always --name registry registry:2'
+                }    
+            }
+        }
+
+        stage('Push Docker Image to Nexus') {
+            steps {
+                script {
+                    // Wait for the registry to be up and running
+                    sleep 10 // Adjust this as necessary
+                    sh "docker tag test 10.101.110.26:8085/repository/repo/node-app-test:latest"
+
+                    // Log in to Docker with Nexus credentials
+                    withCredentials([usernamePassword(credentialsId: env.NEXUS_CREDENTIALS_ID, passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                        sh "echo $PASSWORD | docker login -u $USERNAME --password-stdin 10.101.110.26:8085"
+                    }
+
+                    // Push the Docker image to Nexus
+                    sh "docker push 10.101.110.26:8085/repository/repo/node-app-test:latest"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            sh "docker rmi 10.101.110.26:8085/repository/repo/node-app-test:latest"
+            sh "docker rm -f registry"
+        }
+    }
+}
