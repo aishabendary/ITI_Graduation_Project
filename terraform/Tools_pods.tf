@@ -1,3 +1,4 @@
+
 resource "kubernetes_pod" "jenkins" {
   metadata {
     name      = "jenkins"
@@ -11,7 +12,17 @@ resource "kubernetes_pod" "jenkins" {
       image = "jenkins/jenkins:lts"
       name  = "jenkins"
       port {
-        container_port = 8080
+        container_port = 50000
+      }
+      volume_mount {
+        mount_path = "/var/jenkins_home"
+        name       = "jenkins-storage"
+      }
+    }
+    volume {
+      name = "jenkins-storage"
+      persistent_volume_claim {
+        claim_name = kubernetes_persistent_volume_claim.jenkins_pvc.metadata[0].name
       }
     }
   }
@@ -28,12 +39,13 @@ resource "kubernetes_service" "jenkins" {
     }
     port {
       protocol    = "TCP"
-      port        = 8080
+      port        = 50000
       target_port = 8080
     }
-    type = "NodePort"
+    type = "LoadBalancer"
   }
 }
+
 
 resource "kubernetes_pod" "nexus" {
   metadata {
@@ -50,10 +62,19 @@ resource "kubernetes_pod" "nexus" {
       port {
         container_port = 8081
       }
+      volume_mount {
+        mount_path = "/nexus-data"
+        name       = "nexus-storage"
+      }
+    }
+    volume {
+      name = "nexus-storage"
+      persistent_volume_claim {
+        claim_name = kubernetes_persistent_volume_claim.nexus_pvc.metadata[0].name
+      }
     }
   }
 }
-
 resource "kubernetes_service" "nexus" {
   metadata {
     name      = "nexus-service"
@@ -66,8 +87,8 @@ resource "kubernetes_service" "nexus" {
     port {
       protocol    = "TCP"
       port        = 8081
-      target_port = 8081
+      target_port = 8085
     }
-    type = "NodePort"
+    type = "LoadBalancer"
   }
 }
