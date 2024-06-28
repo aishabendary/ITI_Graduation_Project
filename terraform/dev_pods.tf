@@ -15,6 +15,14 @@ resource "kubernetes_pod" "mysql" {
         name  = "MYSQL_DATABASE"
         value = "mydatabase"
       }
+      env {
+        name  = "MYSQL_USER"
+        value = "sql"
+      }
+      env {
+        name  = "MYSQL_PASSWORD"
+        value = "123"
+      }
       port {
         container_port = 3306
       }

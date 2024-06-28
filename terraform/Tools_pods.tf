@@ -8,7 +8,7 @@ resource "kubernetes_pod" "jenkins" {
   }
   spec {
     container {
-      image = "jenkins/jenkins:lts"
+      image = "zeinabsabry340/test:latest"
       name  = "jenkins"
       port {
         container_port = 8080
