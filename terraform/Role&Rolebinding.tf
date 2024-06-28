@@ -1,37 +1,14 @@
-
-
 # Create the Role with specified rules
 resource "kubernetes_role" "jenkins_role" {
   metadata {
-    name      = "jenkins"
-    namespace = "dev"
-    labels = {
-      "app.kubernetes.io/name" = "jenkins"
-    }
+    name      = "jenkins-role"
+    namespace = var.ns-names[1]
   }
 
   rule {
     api_groups = [""]
-    resources  = ["pods"]
-    verbs      = ["create", "delete", "get", "list", "patch", "update", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["pods/exec"]
-    verbs      = ["create", "delete", "get", "list", "patch", "update", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["pods/log"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["secrets"]
-    verbs      = ["get"]
+    resources  = ["pods", "pods/log", "services", "deployments", "configmaps", "secrets"]
+    verbs      = ["get", "list", "create", "update", "delete"]
   }
 }
 
