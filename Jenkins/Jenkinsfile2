@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define Nexus credentials ID (replace with your actual credentials ID in Jenkins)
+        NEXUS_CREDENTIALS_ID = 'nexus'
+    }
+
+    stages {
+        stage('Start Docker Registry') {
+            steps {
+                script {
+                    // Ensure registry is not already running
+                    sh 'docker rm -f registry || true'
+                    sh 'docker run -d -p 8085:5000 --restart=always --name registry registry:2'
+                }
+            }
+        }
+
+        stage('Pull Docker Image from Nexus') {
+            steps {
+                script {
+                    // Wait for the registry to be up and running
+                    sleep 10
+
+                    // Log in to Docker with Nexus credentials
+                    withCredentials([usernamePassword(credentialsId: env.NEXUS_CREDENTIALS_ID, passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                        sh "echo \$PASSWORD | docker login -u \$USERNAME --password-stdin 10.101.110.26:8085"
+                    }
+
+                    // Pull the Docker image from Nexus
+                    sh "docker pull 10.101.110.26:8085/repository/repo/node-app-test:latest"
+                }
+            }
+        }
+
+        stage('Create Pod on Minikube') {
+            steps {
+                script {
+                    // Define the pod manifest as a string
+                    def podYaml = """
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node
+  namespace: dev
+  labels:
+    app: node
+spec:
+  containers:
+  - name: node
+    image: 10.101.110.26:8085/repository/repo/node-app-test
+    ports:
+    - containerPort: 3000
+      name: http
+    env:
+    - name: HOST
+      value: mysql
+    - name: USERNAME
+      value: "sql"
+    - name: PASSWORD
+      value: "123"
+    - name: DATABASE
+      value: "mydatabase"
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+  imagePullSecrets:
+  - name: nexus-secret
+"""
+
+                    // Write the pod manifest to a file (optional)
+                    writeFile file: 'pod.yaml', text: podYaml
+
+                    // Use kubectl apply to create the pod on Minikube
+                    sh "kubectl apply -f pod.yaml"
+                }
+            }
+        }
+    }
+}
