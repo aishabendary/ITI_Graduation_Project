@@ -21,17 +21,17 @@ resource "kubernetes_service" "nodejs-app" {
   }
 }
 
-resource "kubernetes_secret" "nodejs-app_credentials" {
+resource "kubernetes_secret" "mysql_credentials" {
   metadata {
-    name      = "nodejs-app-credentials"
+    name      = "mysql-credentials"
     namespace = kubernetes_namespace.dev.metadata[0].name
   }
 
   data = {
-    HOST      = "mysql"
-    USERNAME  = "sql"
-    PASSWORD  = "123"
-    DATABASE  = "mydatabase"
+    MYSQL_ROOT_PASSWORD = "12345"
+    MYSQL_DATABASE      = "mydatabase"
+    MYSQL_USER          = "sql"
+    MYSQL_PASSWORD      = "123"
   }
 
   type = "Opaque"
@@ -42,30 +42,56 @@ resource "kubernetes_pod" "mysql" {
   metadata {
     name      = "mysql"
     namespace = kubernetes_namespace.dev.metadata[0].name
-     labels = {
+    labels = {
       app = "mysql"
     }
   }
+
   spec {
     container {
       image = "mysql:5.7"
       name  = "mysql"
+      
       env {
-        name  = "MYSQL_ROOT_PASSWORD"
-        value = "12345"
+        name = "MYSQL_ROOT_PASSWORD"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.mysql_credentials.metadata[0].name
+            key  = "MYSQL_ROOT_PASSWORD"
+          }
+        }
       }
+      
       env {
-        name  = "MYSQL_DATABASE"
-        value = "mydatabase"
+        name = "MYSQL_DATABASE"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.mysql_credentials.metadata[0].name
+            key  = "MYSQL_DATABASE"
+          }
+        }
       }
+      
       env {
-        name  = "MYSQL_USER"
-        value = "sql"
+        name = "MYSQL_USER"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.mysql_credentials.metadata[0].name
+            key  = "MYSQL_USER"
+          }
+        }
       }
+      
       env {
-        name  = "MYSQL_PASSWORD"
-        value = "123"
+        name = "MYSQL_PASSWORD"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.mysql_credentials.metadata[0].name
+            key  = "MYSQL_PASSWORD"
+          }
+        }
       }
+      
       port {
         container_port = 3306
       }
