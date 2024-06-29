@@ -42,6 +42,9 @@ resource "kubernetes_pod" "mysql" {
   metadata {
     name      = "mysql"
     namespace = kubernetes_namespace.dev.metadata[0].name
+     labels = {
+      app = "mysql"
+    }
   }
   spec {
     container {
@@ -67,5 +70,25 @@ resource "kubernetes_pod" "mysql" {
         container_port = 3306
       }
     }
+  }
+}
+
+resource "kubernetes_service" "mysql" {
+  metadata {
+    name      = "mysql"
+    namespace = kubernetes_namespace.dev.metadata[0].name
+  }
+
+  spec {
+    selector = {
+      app = "mysql"
+    }
+
+    port {
+      port        = 3306
+      target_port = 3306
+    }
+
+    type = "ClusterIP"
   }
 }
