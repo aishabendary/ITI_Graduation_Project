@@ -21,6 +21,23 @@ resource "kubernetes_service" "nodejs-app" {
   }
 }
 
+resource "kubernetes_secret" "nodejs-app_credentials" {
+  metadata {
+    name      = "nodejs-app-credentials"
+    namespace = kubernetes_namespace.dev.metadata[0].name
+  }
+
+  data = {
+    HOST      = "mysql"
+    USERNAME  = "sql"
+    PASSWORD  = "123"
+    DATABASE  = "mydatabase"
+  }
+
+  type = "Opaque"
+}
+
+
 resource "kubernetes_pod" "mysql" {
   metadata {
     name      = "mysql"
