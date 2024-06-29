@@ -21,12 +21,22 @@ resource "kubernetes_pod" "jenkins" {
         name       = "jenkins-storage"
       }
     }
+    volume_mount {
+            name       = "docker-socket"
+            mount_path = "/var/run/docker.sock"
+          }
+        }
     volume {
       name = "jenkins-storage"
       persistent_volume_claim {
         claim_name = kubernetes_persistent_volume_claim.jenkins_pvc.metadata[0].name
       }
     }
+    volume {
+          name = "docker-socket"
+          host_path {
+            path = "/var/run/docker.sock"
+          }
   }
 }
 
